@@ -1,0 +1,30 @@
+# Espace de travail Claude : on versionne agents, commandes et guides,
+# pas les skills de design, la memoire des agents ni les permissions locales
+.claude/skills/
+.claude/agent-memory/
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
+
+# Clone local du depot officiel des organisateurs (a consulter, pas a versionner)
+/github/
+
+# Donnees du match : JAMAIS commit (interdit par le reglement, ARENA.md section 7)
+data/
+*.mp4
+*.mkv
+*.avi
+
+# Sorties locales
+evaluation/results/*
+!evaluation/results/.gitkeep
+*.log
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+*.egg-info/
