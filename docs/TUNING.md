@@ -66,10 +66,25 @@ et 0,406 (match 2).
 sp_dead_before_s 10 s, sp_dead_bonus 1, sp_team_after_s 2 s, sp_team_bonus 2. Les autres
 paramètres gardent leur valeur par défaut, non réglée : dist_clip 15 m, out_margin 1 m, out_cost 3.
 
+### Étape 3 : vitesse du ballon et phases du Smart Tagging (`scripts/tune_stage3.py`)
+Ajouts testés sur les paramètres ci-dessus (résultats dans `tuning/stage3.json`) :
+
+| ajout | match 1 | match 2 | décision |
+|---|---|---|---|
+| aucun (référence) | 0,428 | 0,406 | — |
+| ignorer le joueur le plus proche quand le ballon dépasse 15 m/s | 0,435 | 0,409 | **retenu** : jamais pire, et physiquement motivé |
+| + a priori d'équipe sur les phases offensives du Smart Tagging (bonus 0,05) | 0,433 | 0,421 | **écarté** : résultats mitigés, imitation optimiste par construction (phases tirées des labels dérivés) |
+
+La part de frames au-dessus de 15 m/s est proche sur le match (8,5 %) et sur Metrica (environ
+10,5 %) : le seuil se transfère. Avec ces paramètres, la méthode reste au-dessus de la baseline dans
+les 18 essais de robustesse (+0,016 à +0,115).
+
 ### Reproduire
 ```bash
 python scripts/get_external.py
 python scripts/tune_external.py
+python scripts/tune_stage3.py
+python scripts/robustness_external.py
 ```
 
 ---
@@ -125,3 +140,13 @@ used. With the tuning-time degradation the submitted parameters score 0.428 (gam
 **Chosen parameters**: radius 2 m, dead_cost 2, switch_team_s 1 s, switch_dead_s 2 s,
 sp_dead_before_s 10 s, sp_dead_bonus 1, sp_team_after_s 2 s, sp_team_bonus 2. The remaining
 parameters keep their untuned default values: dist_clip 15 m, out_margin 1 m, out_cost 3.
+
+### Stage 3: ball speed and Smart Tagging phases (`scripts/tune_stage3.py`)
+| addition | game 1 | game 2 | decision |
+|---|---|---|---|
+| none (reference) | 0.428 | 0.406 | — |
+| ignore the nearest player when the ball exceeds 15 m/s | 0.435 | 0.409 | **kept**: never worse, physically motivated |
+| + team prior on Smart Tagging attacking phases (bonus 0.05) | 0.433 | 0.421 | **dropped**: mixed, emulation optimistic by construction |
+
+The share of frames above 15 m/s is similar on the match (8.5%) and on Metrica (~10.5%). With
+these parameters the method stays above the baseline in all 18 robustness runs (+0.016 to +0.115).

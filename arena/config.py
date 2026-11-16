@@ -22,4 +22,12 @@ PARAMS = Params(
     sp_dead_bonus=1.0,
     sp_team_after_s=2.0,
     sp_team_bonus=2.0,
+    # Stage 3 (scripts/tune_stage3.py, tuning/stage3.json): ignore the nearest-player evidence
+    # when the ball moves faster than 15 m/s (in flight). +0.007 / +0.002 spellF1 on Metrica
+    # games 1 / 2: within noise but never worse, and physically motivated.
+    fast_speed=15.0,
+    fast_weight=0.0,
+    # Smart Tagging phase prior tested and NOT used (phase_team_bonus = 0): mixed results
+    # (-0.002 / +0.01 to +0.02) on an emulation that is optimistic by construction.
+    phase_team_bonus=0.0,
 )

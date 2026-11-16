@@ -27,6 +27,9 @@ unless sustained evidence pays for it. That is the property spellF1 rewards.
 **Evidence per frame** (log-scores), with `d_team` the distance in metres from the ball to the
 nearest tracked player of that team:
 - ball tracked and on the pitch: `H = -min(d_home, 15)/r`, `A = -min(d_away, 15)/r`, `D = -c_D`;
+- ball in flight (speed above 15 m/s, from positions): no evidence. The player nearest to a pass
+  or a shot is usually not the one who has it, and an in-flight ball far from everyone must not
+  read as dead ball;
 - ball more than 1 m outside the lines: `H = A = -3`, `D = 0`;
 - ball not tracked (41% of graded frames): no evidence. The decoder keeps its current state
   unless a switch pays for itself, so occlusions inside a possession do not fragment it.
@@ -46,11 +49,13 @@ byte-identical file.
 
 | asset | use |
 |---|---|
-| tactical ATD (`_atd.txt`, `_atd.xml`) | positions of players and ball, team of each slot (first team in the metadata = home) |
-| tactical Smart Tagging | restart prior (set pieces only) |
-| tactical homography | **not used**: distances are computed on the pitch directly |
-| tactical / broadcast video, broadcast ATD | **not used** |
-| Smart Tagging phases (Build Up, Progression…) | **not used**: they are phases, not possessions. A team prior from them is left for future work |
+| tactical ATD (`_atd.txt`, `_atd.xml`) | positions of players and ball, team of each slot (first team in the metadata = home), ball speed derived from positions |
+| tactical Smart Tagging, set pieces | restart prior |
+| tactical Smart Tagging, phases (Build Up, Progression…) | **tested, dropped**: a team prior over attacking phases gave mixed external results (−0.002 / +0.01 to +0.02) on an emulation that is optimistic by construction (`tuning/stage3.json`) |
+| tactical homography | **input check only**: valid on 100% of graded frames, median reprojection error 0.23. The decoder works in pitch metres and needs no projection |
+| ATD speed column | **not used**: speed is recomputed from positions so that the match and the external games (which carry no speed) go through identical code |
+| tactical video | **downloaded, not used**: using it needs a ball detector we could not build and tune on external data in time, and checking output against it is forbidden |
+| broadcast ATD, homography and video | **downloaded, not used**: not synchronised to the tactical timeline, with cuts and replays. Re-aligning it was out of reach |
 
 We never look at the video to check the output, and we never use the public 5-minute ground
 truth to choose anything. It was not scored at all.
@@ -78,10 +83,13 @@ No model is trained. Eleven numeric parameters exist. Eight were set by grid sea
 | official baseline, ±50 vote | 0.307 | 0.317 |
 | ours, tracking evidence only | 0.317 | 0.305 |
 | ours, with the restart prior, grid best (15 s dead-ball window) | 0.431 | 0.389 |
-| **ours, submitted parameters (10 s window)** | **0.428** | **0.406** |
+| ours, 10 s window | 0.428 | 0.406 |
+| **ours, submitted: 10 s window + in-flight gating above 15 m/s** | **0.435** | **0.409** |
 
 In 18 robustness runs with a noisier tagger (15-50% of restarts dropped, 1-2 s timing error,
-3 seeds), the submitted parameters stayed above the baseline in every run, by +0.023 to +0.115.
+3 seeds), the submitted parameters stayed above the baseline in every run, by +0.016 to +0.115.
+The share of tracked frames above 15 m/s is similar on the match (8.5%) and on the external
+games (about 10.5%), so the speed threshold transfers.
 The 10 s window was at least as good as the 15 s grid optimum in 15 of the 18 runs, which is why
 it was submitted (`scripts/robustness_external.py`, `tuning/robustness.json`).
 
@@ -103,7 +111,7 @@ it was submitted (`scripts/robustness_external.py`, `tuning/robustness.json`).
   throw-ins), so the true gain on the match is probably smaller than on Metrica.
 - Dead ball that is not followed by a tagged restart, and occlusions that hide a real turnover,
   are detected late or not at all.
-- No notion of control (ball speed, passes), no use of the homography or the video.
+- Control is only approximated (in-flight gating). No pass detection, no use of the video.
 - Next: control features from ball speed and direction (pass detection), interpolation of short
   ball gaps, a team prior from the Smart Tagging phases, more external games (Metrica game 3 in
   EPTS format), and emissions learned on external data instead of a hand-shaped distance score.
@@ -118,6 +126,7 @@ pip install -r requirements.txt
 python scripts/make_submission.py --name <team>     # -> submissions/<team>.csv + official validation
 python -m pytest -q tests                           # synthetic unit tests
 python scripts/get_external.py && python scripts/tune_external.py   # re-run the tuning
+python scripts/tune_stage3.py                                       # ball speed and phase prior
 python scripts/robustness_external.py                               # re-run the robustness check
 ```
 

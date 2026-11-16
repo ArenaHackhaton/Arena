@@ -31,6 +31,32 @@ def _group_layout(raw_path):
     return len(slots), slots[0].count(",") + 1, parts[2].count(",") + 1
 
 
+def check_homography(data_dir=None):
+    """Input validation of the tactical homography (aggregates only).
+
+    The decoder works in pitch metres and does not need the matrices, but the homography tells
+    whether a pitch transform exists for each frame (`valid`) and how well it fits
+    (`reprojection_error`). Returns the share of valid rows and the median reprojection error
+    over the graded halves; raises TrackingFormatError on a malformed file.
+    """
+    games = official.games()
+    path = games.require(["homography"], games.GAME, data_dir)[0]
+    try:
+        table = pd.read_csv(path, usecols=["frame", "reprojection_error", "valid"])
+    except Exception as error:
+        raise TrackingFormatError("homography unreadable ({})".format(type(error).__name__))
+    n_frames = games.source_frames("tactical", games.GAME)
+    if len(table) != n_frames:
+        raise TrackingFormatError("homography rows {} != {}".format(len(table), n_frames))
+    graded = np.zeros(n_frames, dtype=bool)
+    for _, first, last in games.half_video_blocks(games.GAME):
+        graded[first:last + 1] = True
+    valid = table["valid"].to_numpy()[graded] == 1
+    return {"valid_share_graded": round(float(valid.mean()), 4),
+            "median_reproj_error_graded": round(float(
+                np.nanmedian(table["reprojection_error"].to_numpy()[graded])), 3)}
+
+
 def load_match(data_dir=None):
     """dict with ball (T,2) m, players (T,N,2) m, team (N,), pitch, fps, n_frames, runs."""
     games = official.games()

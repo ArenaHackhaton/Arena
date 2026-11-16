@@ -38,13 +38,20 @@ class Params:
     sp_dead_bonus: float = 0.0     # per-frame D bonus in that window (0 = restart prior off)
     sp_team_after_s: float = 2.0   # seconds after a restart favouring the restarting team
     sp_team_bonus: float = 0.0     # per-frame bonus for that team (0 = off)
+    fast_speed: float = 1e9        # m/s; above it the ball is in flight (pass, shot)
+    fast_weight: float = 1.0       # weight of the distance evidence on an in-flight ball
+    phase_team_bonus: float = 0.0  # per-frame bonus for the team of a Smart Tagging phase
 
     def as_dict(self):
         return asdict(self)
 
 
-def evidence(d_home, d_away, ball_visible, ball_out, params):
-    """(T, 3) float array of per-frame log-scores for H, A, D."""
+def evidence(d_home, d_away, ball_visible, ball_out, params, speed=None):
+    """(T, 3) float array of per-frame log-scores for H, A, D.
+
+    If `speed` (m/s) is given, frames where the ball moves faster than params.fast_speed have
+    their in-play evidence scaled by params.fast_weight: the player nearest to a ball in flight
+    is often not the one who has it."""
     d_home = np.asarray(d_home, dtype=float)
     d_away = np.asarray(d_away, dtype=float)
     visible = np.asarray(ball_visible, dtype=bool)
@@ -59,6 +66,11 @@ def evidence(d_home, d_away, ball_visible, ball_out, params):
     scores[in_play, H] = -home[in_play] / params.radius
     scores[in_play, A] = -away[in_play] / params.radius
     scores[in_play, D] = -params.dead_cost
+    if speed is not None and params.fast_weight != 1.0:
+        speed = np.asarray(speed, dtype=float)
+        with np.errstate(invalid="ignore"):
+            fast = in_play & (speed > params.fast_speed)
+        scores[fast] *= params.fast_weight
     scores[out, H] = -params.out_cost
     scores[out, A] = -params.out_cost
     scores[out, D] = 0.0
@@ -102,13 +114,14 @@ def viterbi(scores, costs):
     return path
 
 
-def decode(d_home, d_away, ball_visible, ball_out, runs, n_frames, params, fps, prior=None):
+def decode(d_home, d_away, ball_visible, ball_out, runs, n_frames, params, fps, prior=None,
+           speed=None):
     """Label array of length n_frames: H/A/D inside each graded run, X everywhere else.
 
     Each run (half) is decoded on its own so that no state is carried across halftime.
-    `prior` is an optional (T, 3) array added to the evidence (see priors.restart_prior).
+    `prior` is an optional (T, 3) array added to the evidence (see priors.py).
     """
-    scores = evidence(d_home, d_away, ball_visible, ball_out, params)
+    scores = evidence(d_home, d_away, ball_visible, ball_out, params, speed)
     if prior is not None:
         scores = scores + prior
     costs = transition_costs(params, fps)

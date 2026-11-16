@@ -51,6 +51,12 @@ def main():
             (~(data["ball"][a:b] != data["ball"][a:b]).any(axis=1)).sum()
             for a, b in data["runs"]) / sum(b - a for a, b in data["runs"])))
 
+    log("CALL", "homography input check")
+    try:
+        log("RESULT", "homography {}".format(loader.check_homography()))
+    except Exception as error:  # informative only: the decoder does not use the matrices
+        log("RESULT", "homography check skipped: {}".format(type(error).__name__))
+
     log("CALL", "smart tagging restarts")
     st = official.smart_tagging()
     data["restarts"] = priors.smart_tagging_restarts(st.load(), data["fps"])

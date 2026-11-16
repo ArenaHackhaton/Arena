@@ -9,18 +9,21 @@ import numpy as np
 from . import decode, features, priors
 
 
-def predict(data, params, ball_xy=None, restarts=None):
+def predict(data, params, ball_xy=None, restarts=None, phases=None):
     """Label array (H/A/D in graded runs, X elsewhere) for a loaded game dict.
 
-    `restarts` (list of restart dicts, see priors.py) defaults to data["restarts"] if present.
+    `restarts` and `phases` (see priors.py) default to data["restarts"] / data["phases"].
     """
     ball = data["ball"] if ball_xy is None else ball_xy
     restarts = data.get("restarts", []) if restarts is None else restarts
+    phases = data.get("phases", []) if phases is None else phases
     d_home, d_away = features.nearest_distances(ball, data["players"], data["team"])
     visible, out = features.ball_flags(ball, data["pitch"], params.out_margin)
+    speed = features.ball_speed(ball, data["fps"])
     prior = priors.restart_prior(restarts, data["runs"], data["n_frames"], data["fps"], params)
+    prior += priors.phase_prior(phases, data["n_frames"], params)
     return decode.decode(d_home, d_away, visible, out, data["runs"], data["n_frames"],
-                         params, data["fps"], prior)
+                         params, data["fps"], prior, speed)
 
 
 def baseline_labels(data, window, baseline_module, ball_xy=None):

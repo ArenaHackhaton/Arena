@@ -71,6 +71,27 @@ def test_restart_prior_marks_dead_before_restart():
     assert (labels[260:400] == "D").all()
 
 
+def test_ball_speed_and_in_flight_gating():
+    ball = np.array([[0.0, 0.0], [1.0, 0.0], [2.0, 0.0], [np.nan, np.nan]])
+    speed = features.ball_speed(ball, FPS)
+    assert np.isnan(speed[0]) and abs(speed[1] - 25.0) < 1e-9 and np.isnan(speed[2])
+    data = synthetic_game()
+    # away player nearest for 20 frames, but the ball is "in flight" there: no switch
+    data["players"][300:320, 1, :] = 50.2
+    data["players"][300:320, 0, :] = 60.0
+    data["ball"][300:320, 0] = 50.0 + np.arange(20) * 1.0  # 25 m/s
+    data["players"][300:320, 1, 0] = data["ball"][300:320, 0] + 0.2
+    params = decode.Params(switch_team_s=0.4, fast_speed=15.0, fast_weight=0.0)
+    labels = pipeline.predict(data, params)
+    assert (labels[100:490] == "H").all()
+
+
+def test_phase_prior_adds_team_bonus():
+    params = decode.Params(phase_team_bonus=0.5)
+    prior = priors.phase_prior([{"start": 10, "stop": 20, "team": "A"}], 30, params)
+    assert prior[15, decode.A] == 0.5 and prior[25, decode.A] == 0.0 and prior[15, decode.H] == 0
+
+
 def test_deterministic():
     data = synthetic_game()
     a = pipeline.predict(data, decode.Params())

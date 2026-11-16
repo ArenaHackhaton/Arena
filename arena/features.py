@@ -31,6 +31,20 @@ def nearest_distances(ball_xy, players_xy, team_of_slot):
     return out[0], out[1]
 
 
+def ball_speed(ball_xy, fps):
+    """Ball speed in m/s from positions (centred difference), NaN where a neighbour is missing.
+
+    Computed from positions rather than the ATD speed column so that the provided match and the
+    external games (which carry no speed) go through identical code.
+    """
+    ball_xy = np.asarray(ball_xy, dtype=float)
+    speed = np.full(len(ball_xy), np.nan)
+    if len(ball_xy) >= 3:
+        step = ball_xy[2:] - ball_xy[:-2]
+        speed[1:-1] = np.sqrt((step ** 2).sum(axis=1)) * fps / 2.0
+    return speed
+
+
 def ball_flags(ball_xy, pitch, margin):
     """(visible, out_of_pitch) booleans. Coordinates have their origin at a corner of the pitch."""
     ball_xy = np.asarray(ball_xy, dtype=float)
