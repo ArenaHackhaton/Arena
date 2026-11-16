@@ -55,10 +55,12 @@ match 1, contrôle sur le match 2. Résultats complets : `tuning/results.json`.
 ### Robustesse et choix final
 Le Smart Tagging réel relève 59 remises en jeu pour tout le match, contre environ 90 par match dans
 les données Metrica. On a donc rejoué 18 essais avec un tagging plus dégradé (15 à 50 % de
-remises oubliées, erreur de timing de 1 à 2 s, 3 graines). La méthode bat la baseline dans
-**les 18 essais** (de +0,01 à +0,12). Avec 50 % de remises oubliées, le gain tombe à environ
-+0,02 à +0,07. Une fenêtre de ballon mort de **10 s** avant chaque remise en jeu fait au moins aussi
-bien que 15 s dans 14 essais sur 18 : c'est la valeur retenue.
+remises oubliées, erreur de timing de 1 à 2 s, 3 graines), avec `scripts/robustness_external.py`
+(résultats dans `tuning/robustness.json`). Avec les paramètres soumis, la méthode bat la
+baseline dans **les 18 essais** (de +0,023 à +0,115). Une fenêtre de ballon mort de **10 s**
+avant chaque remise en jeu fait au moins aussi bien que 15 s dans 15 essais sur 18 : c'est la
+valeur retenue. Avec la dégradation du réglage, les paramètres soumis obtiennent 0,428 (match 1)
+et 0,406 (match 2).
 
 **Paramètres retenus** : radius 2 m, dead_cost 2, switch_team_s 1 s, switch_dead_s 2 s,
 sp_dead_before_s 10 s, sp_dead_bonus 1, sp_team_after_s 2 s, sp_team_bonus 2. Les autres
@@ -113,10 +115,12 @@ baseline 0.307 / 0.317, Viterbi stage 1 only 0.317 / 0.305, Viterbi + restart pr
 
 ### Robustness and final choice
 The real Smart Tagging has 59 restarts for the whole match, against ~90 per game in the Metrica events,
-so 18 extra runs used a noisier tagger (15-50% dropped, 1-2 s jitter, 3 seeds). The method beats
-the baseline in **all 18 runs** (+0.01 to +0.12). With 50% of restarts dropped, the gain falls
-to about +0.02 to +0.07. A **10 s** dead-ball window before each restart is at
-least as good as 15 s in 14 of 18 runs, so 10 s is used.
+so 18 extra runs used a noisier tagger (15-50% dropped, 1-2 s jitter, 3 seeds), with
+`scripts/robustness_external.py` (results in `tuning/robustness.json`). With the submitted
+parameters the method beats the baseline in **all 18 runs** (+0.023 to +0.115). A **10 s**
+dead-ball window before each restart is at least as good as 15 s in 15 of 18 runs, so 10 s is
+used. With the tuning-time degradation the submitted parameters score 0.428 (game 1) and 0.406
+(game 2).
 
 **Chosen parameters**: radius 2 m, dead_cost 2, switch_team_s 1 s, switch_dead_s 2 s,
 sp_dead_before_s 10 s, sp_dead_bonus 1, sp_team_after_s 2 s, sp_team_bonus 2. The remaining

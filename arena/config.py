@@ -3,8 +3,9 @@ results in tuning/results.json, rationale in docs/TUNING.md). Never tuned on the
 its public ground truth or its video.
 
 Grid search best on Metrica sample game 1, checked on game 2; sp_dead_before_s set to 10 s
-rather than the 15 s grid optimum because it was at least as good on 14 of 18 robustness runs
-with a noisier tagger (more dropped restarts, larger timing error) -- see docs/TUNING.md.
+rather than the 15 s grid optimum because it was at least as good on 15 of 18 robustness runs
+with a noisier tagger (more dropped restarts, larger timing error) -- see
+scripts/robustness_external.py, tuning/robustness.json and docs/TUNING.md.
 """
 
 from .decode import Params

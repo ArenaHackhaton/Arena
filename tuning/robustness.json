@@ -1,0 +1,206 @@
+{
+ "settings": [
+  [
+   0.15,
+   1.0
+  ],
+  [
+   0.35,
+   2.0
+  ],
+  [
+   0.5,
+   2.0
+  ]
+ ],
+ "seeds": [
+  10,
+  11,
+  12
+ ],
+ "runs": [
+  {
+   "game": 1,
+   "drop": 0.15,
+   "jitter_s": 1.0,
+   "seed": 10,
+   "baseline": 0.3065,
+   "grid_best_15s": 0.4161,
+   "submitted_10s": 0.4219
+  },
+  {
+   "game": 1,
+   "drop": 0.15,
+   "jitter_s": 1.0,
+   "seed": 11,
+   "baseline": 0.3065,
+   "grid_best_15s": 0.4,
+   "submitted_10s": 0.4034
+  },
+  {
+   "game": 1,
+   "drop": 0.15,
+   "jitter_s": 1.0,
+   "seed": 12,
+   "baseline": 0.3065,
+   "grid_best_15s": 0.4107,
+   "submitted_10s": 0.4165
+  },
+  {
+   "game": 1,
+   "drop": 0.35,
+   "jitter_s": 2.0,
+   "seed": 10,
+   "baseline": 0.3065,
+   "grid_best_15s": 0.373,
+   "submitted_10s": 0.3719
+  },
+  {
+   "game": 1,
+   "drop": 0.35,
+   "jitter_s": 2.0,
+   "seed": 11,
+   "baseline": 0.3065,
+   "grid_best_15s": 0.3832,
+   "submitted_10s": 0.3826
+  },
+  {
+   "game": 1,
+   "drop": 0.35,
+   "jitter_s": 2.0,
+   "seed": 12,
+   "baseline": 0.3065,
+   "grid_best_15s": 0.3766,
+   "submitted_10s": 0.3788
+  },
+  {
+   "game": 1,
+   "drop": 0.5,
+   "jitter_s": 2.0,
+   "seed": 10,
+   "baseline": 0.3065,
+   "grid_best_15s": 0.3739,
+   "submitted_10s": 0.3713
+  },
+  {
+   "game": 1,
+   "drop": 0.5,
+   "jitter_s": 2.0,
+   "seed": 11,
+   "baseline": 0.3065,
+   "grid_best_15s": 0.354,
+   "submitted_10s": 0.3549
+  },
+  {
+   "game": 1,
+   "drop": 0.5,
+   "jitter_s": 2.0,
+   "seed": 12,
+   "baseline": 0.3065,
+   "grid_best_15s": 0.3851,
+   "submitted_10s": 0.3858
+  },
+  {
+   "game": 2,
+   "drop": 0.15,
+   "jitter_s": 1.0,
+   "seed": 10,
+   "baseline": 0.3173,
+   "grid_best_15s": 0.3893,
+   "submitted_10s": 0.4
+  },
+  {
+   "game": 2,
+   "drop": 0.15,
+   "jitter_s": 1.0,
+   "seed": 11,
+   "baseline": 0.3173,
+   "grid_best_15s": 0.3572,
+   "submitted_10s": 0.3721
+  },
+  {
+   "game": 2,
+   "drop": 0.15,
+   "jitter_s": 1.0,
+   "seed": 12,
+   "baseline": 0.3173,
+   "grid_best_15s": 0.4021,
+   "submitted_10s": 0.4287
+  },
+  {
+   "game": 2,
+   "drop": 0.35,
+   "jitter_s": 2.0,
+   "seed": 10,
+   "baseline": 0.3173,
+   "grid_best_15s": 0.363,
+   "submitted_10s": 0.3763
+  },
+  {
+   "game": 2,
+   "drop": 0.35,
+   "jitter_s": 2.0,
+   "seed": 11,
+   "baseline": 0.3173,
+   "grid_best_15s": 0.353,
+   "submitted_10s": 0.3585
+  },
+  {
+   "game": 2,
+   "drop": 0.35,
+   "jitter_s": 2.0,
+   "seed": 12,
+   "baseline": 0.3173,
+   "grid_best_15s": 0.3776,
+   "submitted_10s": 0.3843
+  },
+  {
+   "game": 2,
+   "drop": 0.5,
+   "jitter_s": 2.0,
+   "seed": 10,
+   "baseline": 0.3173,
+   "grid_best_15s": 0.354,
+   "submitted_10s": 0.3579
+  },
+  {
+   "game": 2,
+   "drop": 0.5,
+   "jitter_s": 2.0,
+   "seed": 11,
+   "baseline": 0.3173,
+   "grid_best_15s": 0.3314,
+   "submitted_10s": 0.3407
+  },
+  {
+   "game": 2,
+   "drop": 0.5,
+   "jitter_s": 2.0,
+   "seed": 12,
+   "baseline": 0.3173,
+   "grid_best_15s": 0.3554,
+   "submitted_10s": 0.3607
+  }
+ ],
+ "submitted_tuning_degradation": {
+  "1": {
+   "spell_f1": 0.4281,
+   "macro_f1": 0.6901,
+   "n_pred": 219,
+   "n_gt": 379
+  },
+  "2": {
+   "spell_f1": 0.4064,
+   "macro_f1": 0.6635,
+   "n_pred": 211,
+   "n_gt": 355
+  }
+ },
+ "summary": {
+  "n_runs": 18,
+  "submitted_beats_baseline": 18,
+  "gain_min": 0.0234,
+  "gain_max": 0.1154,
+  "10s_at_least_as_good_as_15s": 15
+ }
+}
