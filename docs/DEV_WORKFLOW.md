@@ -2,13 +2,28 @@
 
 [Français](#français) | [English](#english)
 
+```mermaid
+flowchart TD
+  A["make_submission.py --name team"] --> B["loader.load_match (ATD tactical)"]
+  B --> C["official.smart_tagging (Smart Tagging)"]
+  C --> D["priors.smart_tagging_restarts"]
+  D --> E["pipeline.predict (features, decode.viterbi)"]
+  E --> F["write_csv: submissions/team.csv"]
+  F --> G["official validate_submission.py"]
+
+  classDef process fill:#4c6ef5,stroke:#1971c2,color:#fff
+  class A,B,C,D,E,F,G process
+```
+
 ## Français
 
-> **🎯 Cible.** Aucune commande du projet n'est encore écrite. Constat du 2026-11-07 : Python 3.13 est installé mais
-> hors PATH ; il n'existe ni environnement virtuel, ni `requirements.txt`, ni paquet `possession/`.
-> Les commandes ci-dessous sont des cibles, à valider quand elles existent.
+> **État au 2026-11-16.** Les commandes ci-dessous existent dans le dépôt (`scripts/`, `tests/`,
+> `requirements.txt`). Elles n'ont pas été rejouées par cette mise à jour : à valider sur une machine propre.
+> Ce qui n'existe pas encore est marqué 🎯. Date limite de soumission : 17 novembre 2026, soit
+> un jour après cette mise à jour.
 >
-> Convention : `python` désigne l'interpréteur de l'environnement virtuel, soit `.venv/Scripts/python.exe` sous Windows.
+> Convention : `python` désigne l'interpréteur de l'environnement virtuel, soit `.venv\Scripts\python.exe`
+> sous Windows (ou `.venv/bin/python` sous bash). Les commandes `python ...` supposent cet environnement activé.
 
 Nouveau contributeur ? Suivre le **Quick start** de haut en bas.
 
@@ -16,21 +31,64 @@ Nouveau contributeur ? Suivre le **Quick start** de haut en bas.
 
 ### Quick start
 
-1. Cloner le dépôt de l'équipe (public, sans `data/`). 🎯
-2. Créer l'environnement virtuel avec Python 3.13, en chemin complet tant qu'il n'est pas dans le PATH : 🎯
+1. Cloner le dépôt de l'équipe (public, sans `data/`).
+2. Créer l'environnement virtuel avec Python 3.11 et installer les dépendances figées (`requirements.txt` :
+   numpy 2.4.6, pandas 3.1.1, pytest 9.2.0).
+
+   PowerShell (Windows) :
+
+   ```powershell
+   py -3.11 -m venv .venv
+   .\.venv\Scripts\python.exe -m pip install -r requirements.txt
+   ```
+
+   bash :
+
+   ```bash
+   python3.11 -m venv .venv
+   .venv/bin/python -m pip install -r requirements.txt
+   ```
+
+   Si le lanceur `py` ne trouve pas Python 3.11, utiliser le chemin complet de `python.exe` 3.11.
+3. Dépôt officiel à côté du dépôt : `..\more-than-a-hack-2027` (Windows) ou `../more-than-a-hack-2027` (bash).
+   Son code est importé depuis le disque (`arena/official.py`), jamais copié. Autre emplacement : variable
+   `MTAH_OFFICIAL_DIR` (voir le tableau ci-dessous).
+4. Placer les données du match hors du dépôt : dans le dossier `data/` attendu par `games.require` du dépôt
+   officiel, ou dans le dossier désigné par `MTAH_DATA_DIR`. Ne jamais les commiter.
+5. Régénérer le CSV de soumission et le valider (le validateur officiel est lancé par le script) :
 
    ```
-   <chemin-vers-python-3.13>\python.exe -m venv .venv
-   .venv/Scripts/python.exe -m pip install -r requirements.txt
+   python scripts/make_submission.py --name <nom_equipe>
    ```
 
-   `requirements.txt` doit être figé (versions exactes) pour que la régénération reste identique 🎯.
-3. Placer les fichiers fournis dans `data/`, ou définir `MTAH_DATA_DIR` vers le dossier qui les contient (ARENA.md §4.2). Ne jamais les commiter.
-4. Cloner à côté le dépôt officiel `https://github.com/metrica-sports/more-than-a-hack-2027`, ou copier son code après vérification de la licence (décision ouverte, `ROADMAP_NEXT_STEPS.md` §5) 🎯.
-5. Lancer le scoreur officiel sur les 4 baselines : `python evaluation/run_evaluation.py` 🎯.
-6. Régénérer le CSV de travail : `python -m possession.run` 🎯.
-7. Valider le fichier produit : `python evaluation/validate_submission.py <chemin>/<nom_equipe>.csv` 🎯.
-8. Lancer les tests : `python -m pytest` 🎯.
+6. Réglage sur données externes (git requis, données Metrica) :
+
+   ```
+   python scripts/get_external.py
+   python scripts/tune_external.py
+   ```
+
+7. Lancer les tests (synthétiques uniquement) :
+
+   ```
+   python -m pytest -q tests
+   ```
+
+Commandes par shell : PowerShell, activer l'environnement avec `.\.venv\Scripts\Activate.ps1`, puis `python ...`
+comme ci-dessus. Sous bash, `source .venv/bin/activate`. Les commandes elles-mêmes sont identiques.
+
+---
+
+### Variables d'environnement
+
+| Variable | Rôle | Défaut |
+|---|---|---|
+| `MTAH_OFFICIAL_DIR` | Dépôt officiel (`games.py`, `evaluation/`, `starter/`) | dossier frère `more-than-a-hack-2027` |
+| `MTAH_DATA_DIR` | Dossier des données du match, lu par le code du dépôt officiel (ARENA.md §4.2) | résolu par `games.require` |
+| `ARENA_EXTERNAL_DIR` | Dossier des données externes (`get_external.py`, `external_metrica.py`) | `external/sample-data` dans ce dépôt |
+
+PowerShell : `$env:MTAH_OFFICIAL_DIR = "C:\chemin\vers\more-than-a-hack-2027"`.
+bash : `export MTAH_OFFICIAL_DIR=/chemin/vers/more-than-a-hack-2027`.
 
 ---
 
@@ -39,16 +97,18 @@ Nouveau contributeur ? Suivre le **Quick start** de haut en bas.
 | Environnement | Usage | Données du match | Envoi à un LLM hébergé dans le cloud |
 |---|---|---|---|
 | `dev` | développement local | `data/` en local, jamais commité | interdit |
-| `test` | tests automatiques | jeux synthétiques versionnés, petits ; tests sur `data/` seulement en local (`MTAH_DATA_DIR`) | interdit |
+| `test` | tests automatiques | jeux synthétiques versionnés (`tests/`) ; aucun test ne lit `data/` | interdit |
 | `soumission` | régénération du CSV final depuis un clone propre | `data/` fourni, hors du dépôt | interdit |
 
 Règles :
 
 - **Aucune donnée du match dans le dépôt** : ni `data/`, ni vidéo, ni export frame par frame (ARENA.md §7).
-- **Aucune clé ni service distant** n'est nécessaire au pipeline (cible). Les données sont locales.
-- **Chemin des données** : variable `MTAH_DATA_DIR`, lue par `games.py` (ARENA.md §4.2) 🎯 à confirmer.
-- **Graine fixe** pour tout tirage aléatoire, et un seul point d'entrée qui régénère le CSV (D-004).
-- **Interpréteur** : Python 3.13 en local (D-001) ; version exacte figée dans `requirements.txt` 🎯.
+  `.gitignore` couvre `data/`, `*.mp4`, `*.csv`, `submissions/`, `external/` et `.venv/`.
+- **Aucune clé ni service distant** : le pipeline tourne en local.
+- **Graine fixe** : pas de tirage aléatoire sur le chemin du match. Le seul tirage (occlusion et dégradation
+  des remises, sur données externes) utilise une graine fixe (`SEED = 0`).
+- **Interpréteur** : Python 3.11, version figée dans `requirements.txt`. `DECISIONS.md` D-001 mentionne encore
+  « 3.9 minimum » : voir `KNOWN_ISSUES.md` (entrée 17).
 
 ---
 
@@ -56,18 +116,27 @@ Règles :
 
 | Action | Commande | Statut |
 |---|---|---|
-| Installer les dépendances | `python -m pip install -r requirements.txt` | 🎯 `requirements.txt` à créer, figé |
-| Scorer les 4 baselines officielles | `python evaluation/run_evaluation.py` | 🎯 dépôt officiel à cloner |
-| Scorer avec intervalles de confiance | `python evaluation/run_evaluation.py --bootstrap 1000` | 🎯 |
-| Régénérer les baselines officielles | `python starter/baseline.py` | 🎯 nécessite `data/` |
-| Valider un CSV | `python evaluation/validate_submission.py <fichier>` | 🎯 |
-| Régénérer le CSV soumis (point d'entrée unique, D-004) | `python -m possession.run` | 🎯 paquet `possession/` et arguments à écrire |
-| Lancer les tests | `python -m pytest` | 🎯 pytest à ajouter |
-| Lancer le lint | `ruff check .` | 🎯 ruff à ajouter |
-| Lancer le type-check | — | non décidé |
-| Vérifier les règles du défi | agent `rules-guard` (tests de `TESTING.md` §6) | 🎯 |
+| Installer les dépendances | `python -m pip install -r requirements.txt` | ✅ |
+| Régénérer et valider le CSV | `python scripts/make_submission.py --name <nom_equipe>` | ✅ sortie `submissions/<nom_equipe>.csv` (ignorée par Git) |
+| Récupérer les données externes | `python scripts/get_external.py` | ✅ clone épinglé au commit `e706dd5`, dans `external/sample-data` |
+| Régler sur données externes | `python scripts/tune_external.py` | ✅ écrit `tuning/results.json` ; ne modifie pas `arena/config.py` |
+| Lancer les tests | `python -m pytest -q tests` | ✅ 8 tests synthétiques (`tests/test_pipeline.py`) |
+| Scorer spellF1 / macroF1 | fonctions officielles chargées par `arena/official.py` | 🟡 utilisées par `tune_external.py` sur données externes ; pas de commande de scoring du match |
+| Lint, type-check | — | 🎯 non installés ; ruff absent de `requirements.txt` ; non décidé |
+| Vérifier les règles du défi | agent `rules-guard` (`TESTING.md` §6) | 🎯 |
 
-Aucun service réseau ni port n'est prévu : tout tourne en processus local.
+Détails utiles :
+
+- `make_submission.py` écrit `frame,label` (en-tête puis une ligne par frame), vérifie la plage des frames
+  (`loader.py`), affiche des agrégats seulement, puis affiche l'empreinte SHA-256 (16 premiers caractères).
+  Son code de sortie est celui du validateur officiel.
+- `tune_external.py` fait deux grilles : 144 combinaisons (étape 1) puis 96 (étape 2, a priori des remises),
+  chacune sur les deux matchs Metrica. La durée n'est pas mesurée ici.
+- Les valeurs de `arena/config.py` sont recopiées à la main depuis `tuning/results.json` (voir `TUNING.md`).
+  Relancer le réglage ne change pas la soumission tant que `config.py` n'est pas mis à jour.
+
+Aucun service réseau ni port n'est prévu : tout tourne en processus local (sauf `get_external.py`, qui clone
+un dépôt public).
 
 ---
 
@@ -75,12 +144,17 @@ Aucun service réseau ni port n'est prévu : tout tourne en processus local.
 
 Source : ARENA.md §6. Date limite : **17 novembre 2026** ; résultats avant le **26 novembre 2026**.
 
-1. Régénérer le CSV depuis le dépôt propre (`python -m possession.run`, 🎯). Une seconde exécution doit donner le même SHA-256 (`TESTING.md` §6).
-2. Nommer le fichier `<nom_equipe>.csv`.
-3. Valider **le fichier exact** : `python evaluation/validate_submission.py <nom_equipe>.csv`, et noter son empreinte SHA-256.
-4. Rédiger le document technique `<nom_equipe>.pdf` (PDF ou MD, quelques pages) avec les rubriques d'ARENA.md §6.2 : approche et son choix, données utilisées et abandonnées, données d'entraînement (source, annotateur, quantité ; rien sur ce match), règles de possession, tracking manquant ou bruité, limites, reproduction.
-5. Vérifier que le dépôt public est accessible, sans `data/`, avec des dépendances figées, et que la commande de régénération est documentée.
-6. Remplir le **Google Form** (lien envoyé par e-mail aux inscrits ; compte Google requis) : nom d'équipe, CSV, URL du dépôt, document technique.
+1. Régénérer le CSV depuis le dépôt propre : `python scripts/make_submission.py --name <nom_equipe>`.
+   Le script valide le fichier produit avec le validateur officiel. Noter l'empreinte SHA-256 affichée.
+2. Relancer la commande une seconde fois : l'empreinte doit être identique (`TESTING.md` §6). 🎯 Non encore vérifié.
+3. Le fichier s'appelle `<nom_equipe>.csv`, et il est dans `submissions/` (ignoré par Git, à envoyer hors dépôt).
+4. Rédiger le document technique `<nom_equipe>.pdf` (PDF ou MD, quelques pages) avec les rubriques d'ARENA.md §6.2 :
+   approche et son choix, données utilisées et abandonnées, données d'entraînement (source, annotateur,
+   quantité ; rien sur ce match), règles de possession, tracking manquant ou bruité, limites, reproduction.
+5. Vérifier que le dépôt public est accessible, sans `data/`, avec des dépendances figées, et que la commande de
+   régénération est documentée.
+6. Remplir le **Google Form** (lien envoyé par e-mail aux inscrits ; compte Google requis) : nom d'équipe, CSV,
+   URL du dépôt, document technique.
 7. Une seule réponse par équipe, modifiable : la dernière réponse avant la date limite compte.
 8. Ne pas attendre le dernier jour. Il n'y a ni classement en direct ni retour pendant le concours (ARENA.md §6.3).
 
@@ -90,21 +164,26 @@ Contact : `hackathon.talentarena@mobileworldcapital.com` ; questions techniques 
 
 ### Avant de commiter
 
-- `git status` ne liste aucun fichier de `data/`, aucun `*.mp4`, aucun CSV de soumission ni export frame par frame (publication interdite, ARENA.md §7 ; à confirmer, voir `ROADMAP_NEXT_STEPS.md` §5).
+- `git status` ne liste aucun fichier de `data/`, aucun `*.mp4`, aucun CSV, aucun export frame par frame
+  (publication interdite, ARENA.md §7 ; le CSV soumis dans le dépôt public reste à confirmer, `ROADMAP_NEXT_STEPS.md` §5).
 - Aucun secret ni donnée personnelle dans le diff.
-- Tests et lint verts (commandes ci-dessus) ; `rules-guard` vert (`TESTING.md` §6).
-- Logs conformes aux marqueurs `[START]` `[ENTITY]` `[CALL]` `[RESULT]` `[STATE]` (`TESTING.md` §7).
-- Documentation à jour : `DECISIONS.md` pour une décision, `KNOWN_ISSUES.md` pour une limite, `LESSONS_LEARNED.md` après un bug. Français et anglais dans le même changement (D-005).
+- Tests verts : `python -m pytest -q tests`. Lint : 🎯.
+- `rules-guard` vert (`TESTING.md` §6) : 🎯 agent à utiliser avant tout commit sensible.
+- Logs conformes aux marqueurs `[START]` `[ENTITY]` `[CALL]` `[RESULT]` `[STATE]` (`TESTING.md` §7). Les scripts
+  utilisent déjà `[START]` `[CALL]` `[RESULT]` `[STATE]`.
+- Documentation à jour : `DECISIONS.md` pour une décision, `KNOWN_ISSUES.md` pour une limite, `LESSONS_LEARNED.md`
+  après un bug. Français et anglais dans le même changement (D-005).
 
 ---
 
 ## English
 
-> **🎯 Target.** No project command is written yet. Finding as of 2026-11-07: Python 3.13 is installed but not on the
-> PATH; there is no virtual environment, no `requirements.txt` and no `possession/` package yet.
-> The commands below are targets, to be validated once they exist.
+> **Status as of 2026-11-16.** The commands below exist in the repository (`scripts/`, `tests/`,
+> `requirements.txt`). This update did not re-run them: to be validated on a clean machine.
+> What does not exist yet is marked 🎯. Submission deadline: 17 November 2026, one day after this update.
 >
-> Convention: `python` means the interpreter of the virtual environment, i.e. `.venv/Scripts/python.exe` on Windows.
+> Convention: `python` means the interpreter of the virtual environment, i.e. `.venv\Scripts\python.exe`
+> on Windows (or `.venv/bin/python` in bash). The `python ...` commands assume this environment is active.
 
 New contributor? Follow the **Quick start** from top to bottom.
 
@@ -112,21 +191,64 @@ New contributor? Follow the **Quick start** from top to bottom.
 
 ### Quick start
 
-1. Clone the team repository (public, without `data/`). 🎯
-2. Create the virtual environment with Python 3.13, using the full path while it is not on the PATH: 🎯
+1. Clone the team repository (public, without `data/`).
+2. Create the virtual environment with Python 3.11 and install the frozen dependencies (`requirements.txt`:
+   numpy 2.4.6, pandas 3.1.1, pytest 9.2.0).
+
+   PowerShell (Windows):
+
+   ```powershell
+   py -3.11 -m venv .venv
+   .\.venv\Scripts\python.exe -m pip install -r requirements.txt
+   ```
+
+   bash:
+
+   ```bash
+   python3.11 -m venv .venv
+   .venv/bin/python -m pip install -r requirements.txt
+   ```
+
+   If the `py` launcher does not find Python 3.11, use the full path of the 3.11 `python.exe`.
+3. Official repository next to this repository: `..\more-than-a-hack-2027` (Windows) or `../more-than-a-hack-2027`
+   (bash). Its code is imported from disk (`arena/official.py`), never copied. Other location: variable
+   `MTAH_OFFICIAL_DIR` (see the table below).
+4. Place the match data outside the repository: in the `data/` folder expected by `games.require` of the official
+   repository, or in the folder named by `MTAH_DATA_DIR`. Never commit them.
+5. Regenerate the submission CSV and validate it (the official validator is run by the script):
 
    ```
-   <chemin-vers-python-3.13>\python.exe -m venv .venv
-   .venv/Scripts/python.exe -m pip install -r requirements.txt
+   python scripts/make_submission.py --name <team_name>
    ```
 
-   `requirements.txt` must be frozen (exact versions) so that regeneration stays identical 🎯.
-3. Place the provided files in `data/`, or set `MTAH_DATA_DIR` to the folder that holds them (ARENA.md §4.2). Never commit them.
-4. Clone the official repository next to ours, `https://github.com/metrica-sports/more-than-a-hack-2027`, or copy its code after checking the licence (open decision, `ROADMAP_NEXT_STEPS.md` §5) 🎯.
-5. Run the official scorer on the 4 baselines: `python evaluation/run_evaluation.py` 🎯.
-6. Regenerate the working CSV: `python -m possession.run` 🎯.
-7. Validate the produced file: `python evaluation/validate_submission.py <path>/<team_name>.csv` 🎯.
-8. Run the tests: `python -m pytest` 🎯.
+6. Tuning on external data (git required, Metrica data):
+
+   ```
+   python scripts/get_external.py
+   python scripts/tune_external.py
+   ```
+
+7. Run the tests (synthetic only):
+
+   ```
+   python -m pytest -q tests
+   ```
+
+Shell notes: in PowerShell, activate the environment with `.\.venv\Scripts\Activate.ps1`, then use `python ...`
+as above. In bash, `source .venv/bin/activate`. The commands themselves are identical.
+
+---
+
+### Environment variables
+
+| Variable | Role | Default |
+|---|---|---|
+| `MTAH_OFFICIAL_DIR` | Official repository (`games.py`, `evaluation/`, `starter/`) | sibling folder `more-than-a-hack-2027` |
+| `MTAH_DATA_DIR` | Folder of the match data, read by the code of the official repository (ARENA.md §4.2) | resolved by `games.require` |
+| `ARENA_EXTERNAL_DIR` | Folder of the external data (`get_external.py`, `external_metrica.py`) | `external/sample-data` in this repository |
+
+PowerShell: `$env:MTAH_OFFICIAL_DIR = "C:\path\to\more-than-a-hack-2027"`.
+bash: `export MTAH_OFFICIAL_DIR=/path/to/more-than-a-hack-2027`.
 
 ---
 
@@ -135,16 +257,18 @@ New contributor? Follow the **Quick start** from top to bottom.
 | Environment | Use | Match data | Sending to a cloud-hosted LLM |
 |---|---|---|---|
 | `dev` | local development | `data/` locally, never committed | forbidden |
-| `test` | automated tests | small synthetic datasets, versioned; tests on `data/` only locally (`MTAH_DATA_DIR`) | forbidden |
+| `test` | automated tests | small synthetic datasets, versioned (`tests/`); no test reads `data/` | forbidden |
 | `submission` | regeneration of the final CSV from a clean clone | `data/` provided, outside the repository | forbidden |
 
 Rules:
 
 - **No match data in the repository**: no `data/`, no video, no frame-by-frame export (ARENA.md §7).
-- **No key or remote service** is needed by the pipeline (target). Data is local.
-- **Data path**: environment variable `MTAH_DATA_DIR`, read by `games.py` (ARENA.md §4.2) 🎯 to confirm.
-- **Fixed seed** for any random draw, and a single entry point that regenerates the CSV (D-004).
-- **Interpreter**: Python 3.13 locally (D-001); exact version frozen in `requirements.txt` 🎯.
+  `.gitignore` covers `data/`, `*.mp4`, `*.csv`, `submissions/`, `external/` and `.venv/`.
+- **No key or remote service**: the pipeline runs locally.
+- **Fixed seed**: no random draw on the match path. The only draws (occlusion and degradation of restarts, on
+  external data) use a fixed seed (`SEED = 0`).
+- **Interpreter**: Python 3.11, version pinned in `requirements.txt`. `DECISIONS.md` D-001 still says
+  "3.9 minimum": see `KNOWN_ISSUES.md` (entry 17).
 
 ---
 
@@ -152,18 +276,27 @@ Rules:
 
 | Action | Command | Status |
 |---|---|---|
-| Install dependencies | `python -m pip install -r requirements.txt` | 🎯 `requirements.txt` to create, frozen |
-| Score the 4 official baselines | `python evaluation/run_evaluation.py` | 🎯 official repository to clone |
-| Score with confidence intervals | `python evaluation/run_evaluation.py --bootstrap 1000` | 🎯 |
-| Regenerate official baselines | `python starter/baseline.py` | 🎯 needs `data/` |
-| Validate a CSV | `python evaluation/validate_submission.py <file>` | 🎯 |
-| Regenerate the submitted CSV (single entry point, D-004) | `python -m possession.run` | 🎯 `possession/` package and arguments to write |
-| Run tests | `python -m pytest` | 🎯 pytest to add |
-| Run lint | `ruff check .` | 🎯 ruff to add |
-| Run type-check | — | not decided |
-| Check challenge rules | `rules-guard` agent (tests in `TESTING.md` §6) | 🎯 |
+| Install dependencies | `python -m pip install -r requirements.txt` | ✅ |
+| Regenerate and validate the CSV | `python scripts/make_submission.py --name <team_name>` | ✅ output `submissions/<team_name>.csv` (ignored by Git) |
+| Fetch the external data | `python scripts/get_external.py` | ✅ clone pinned at commit `e706dd5`, in `external/sample-data` |
+| Tune on external data | `python scripts/tune_external.py` | ✅ writes `tuning/results.json`; does not change `arena/config.py` |
+| Run tests | `python -m pytest -q tests` | ✅ 8 synthetic tests (`tests/test_pipeline.py`) |
+| Score spellF1 / macroF1 | official functions loaded by `arena/official.py` | 🟡 used by `tune_external.py` on external data; no scoring command for the match |
+| Lint, type-check | — | 🎯 not installed; ruff absent from `requirements.txt`; not decided |
+| Check challenge rules | `rules-guard` agent (`TESTING.md` §6) | 🎯 |
 
-No network service or port is planned: everything runs as a local process.
+Useful details:
+
+- `make_submission.py` writes `frame,label` (header, then one line per frame), checks the frame range
+  (`loader.py`), prints aggregates only, then prints the SHA-256 fingerprint (first 16 characters).
+  Its exit code is the exit code of the official validator.
+- `tune_external.py` runs two grids: 144 combinations (stage 1), then 96 (stage 2, restart prior), each on the
+  two Metrica games. Its run time is not measured here.
+- The values in `arena/config.py` are copied by hand from `tuning/results.json` (see `TUNING.md`).
+  Re-running the tuning does not change the submission until `config.py` is updated.
+
+No network service or port is planned: everything runs as a local process (except `get_external.py`, which
+clones a public repository).
 
 ---
 
@@ -171,12 +304,17 @@ No network service or port is planned: everything runs as a local process.
 
 Source: ARENA.md §6. Deadline: **17 November 2026**; results before **26 November 2026**.
 
-1. Regenerate the CSV from the clean repository (`python -m possession.run`, 🎯). A second run must give the same SHA-256 (`TESTING.md` §6).
-2. Name the file `<team_name>.csv`.
-3. Validate **the exact file**: `python evaluation/validate_submission.py <team_name>.csv`, and note its SHA-256 fingerprint.
-4. Write the technical document `<team_name>.pdf` (PDF or MD, a few pages) with the sections of ARENA.md §6.2: approach and why it was chosen, data used and abandoned, training data (source, annotator, quantity; nothing on this match), possession rules, missing or noisy tracking, limits, reproduction.
-5. Check that the public repository is reachable, without `data/`, with frozen dependencies, and that the regeneration command is documented.
-6. Fill in the **Google Form** (link sent by e-mail to registered teams; a Google account is required): team name, CSV, repository URL, technical document.
+1. Regenerate the CSV from the clean repository: `python scripts/make_submission.py --name <team_name>`.
+   The script validates the produced file with the official validator. Note the SHA-256 fingerprint printed.
+2. Run the command a second time: the fingerprint must be identical (`TESTING.md` §6). 🎯 Not yet verified.
+3. The file is named `<team_name>.csv` and sits in `submissions/` (ignored by Git; send it outside the repository).
+4. Write the technical document `<team_name>.pdf` (PDF or MD, a few pages) with the sections of ARENA.md §6.2:
+   approach and why it was chosen, data used and abandoned, training data (source, annotator, quantity; nothing
+   on this match), possession rules, missing or noisy tracking, limits, reproduction.
+5. Check that the public repository is reachable, without `data/`, with frozen dependencies, and that the
+   regeneration command is documented.
+6. Fill in the **Google Form** (link sent by e-mail to registered teams; a Google account is required): team name,
+   CSV, repository URL, technical document.
 7. One answer per team, editable: the last answer before the deadline counts.
 8. Do not wait for the last day. There is no live leaderboard and no feedback during the challenge (ARENA.md §6.3).
 
@@ -186,8 +324,13 @@ Contact: `hackathon.talentarena@mobileworldcapital.com`; technical questions: Gi
 
 ### Before committing
 
-- `git status` lists no file from `data/`, no `*.mp4`, no submission CSV and no frame-by-frame export (publication forbidden, ARENA.md §7; to confirm, see `ROADMAP_NEXT_STEPS.md` §5).
+- `git status` lists no file from `data/`, no `*.mp4`, no CSV, no frame-by-frame export (publication forbidden,
+  ARENA.md §7; whether the submitted CSV may appear in the public repository is still to confirm,
+  `ROADMAP_NEXT_STEPS.md` §5).
 - No secret and no personal data in the diff.
-- Tests and lint green (commands above); `rules-guard` green (`TESTING.md` §6).
-- Logs follow the `[START]` `[ENTITY]` `[CALL]` `[RESULT]` `[STATE]` markers (`TESTING.md` §7).
-- Documentation up to date: `DECISIONS.md` for a decision, `KNOWN_ISSUES.md` for a limit, `LESSONS_LEARNED.md` after a bug. French and English in the same change (D-005).
+- Tests green: `python -m pytest -q tests`. Lint: 🎯.
+- `rules-guard` green (`TESTING.md` §6): 🎯 agent to run before any sensitive commit.
+- Logs follow the `[START]` `[ENTITY]` `[CALL]` `[RESULT]` `[STATE]` markers (`TESTING.md` §7). The scripts
+  already use `[START]` `[CALL]` `[RESULT]` `[STATE]`.
+- Documentation up to date: `DECISIONS.md` for a decision, `KNOWN_ISSUES.md` for a limit, `LESSONS_LEARNED.md`
+  after a bug. French and English in the same change (D-005).
