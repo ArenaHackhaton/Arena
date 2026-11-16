@@ -14,7 +14,10 @@ data/
 *.mkv
 *.avi
 
-# Sorties locales
+# Sorties locales : CSV de prediction et donnees externes (jamais commit)
+submissions/
+external/
+*.csv
 evaluation/results/*
 !evaluation/results/.gitkeep
 *.log
