@@ -62,14 +62,24 @@ truth to choose anything. It was not scored at all.
 
 ## 3. Training and tuning data
 
-No model is trained. Eleven numeric parameters exist. Eight were set by grid search, and three
-(the 15 m distance clip, the 1 m out-of-pitch margin and the out-of-pitch cost of 3) keep default values that were not tuned. The search used **external data only**:
+No model is trained. Fourteen numeric parameters exist (`arena/config.py`):
+- eight set by grid search (evidence scale, dead-ball cost, two switch penalties, four
+  restart-prior values), plus the 10 s dead-ball window chosen among them by robustness runs;
+- two set in a third search: the in-flight gating at 15 m/s with weight 0. The threshold came
+  from the external grid; the match-side speed distribution was measured only afterwards, as a
+  transfer check, and changed nothing;
+- one tested and switched off: the Smart Tagging phase prior (bonus 0);
+- three untuned defaults: the 15 m distance clip, the 1 m out-of-pitch margin and the
+  out-of-pitch cost of 3.
+
+Every search used **external data only**:
 
 - **Metrica Sports public sample data**
   (https://github.com/metrica-sports/sample-data, commit `e706dd5`), Sample Games 1 and 2:
   anonymised matches with tracking at 25 fps and **event data annotated by humans at Metrica**
   (1,745 and 1,935 events). Game 1 was used for selection and game 2 was held out for checking.
-  Terms: responsible use with attribution. This document acknowledges the source.
+  The repository has no licence file. Its README ("Legal stuff") asks for responsible use and
+  for the source to be acknowledged in any public use, which this document does.
 - H/A/D labels were derived from those events by fixed rules (team events give possession;
   ball out, fouls and goals give dead ball until the next team event). The full rules are in
   `docs/TUNING.md`.

@@ -1,7 +1,6 @@
 """Regenerate the submission CSV from the provided data, then validate it.
 
-    python scripts/make_submission.py                  # -> submissions/arena.csv
-    python scripts/make_submission.py --name MyTeam    # -> submissions/MyTeam.csv
+    python scripts/make_submission.py                  # -> submissions/CulersFromSN.csv
 
 Deterministic: no randomness on the match path, so the same code and data give the same file
 byte for byte. Prints aggregates only (counts, possessions, timing) -- never frame-level data.
@@ -32,7 +31,7 @@ def write_csv(path, labels):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--name", default="arena", help="file stem (the team name)")
+    parser.add_argument("--name", default="CulersFromSN", help="file stem (the team name)")
     parser.add_argument("--out", default=os.path.join(ROOT, "submissions"))
     args = parser.parse_args()
     t0 = time.time()
