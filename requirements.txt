@@ -1,0 +1,4 @@
+﻿# Python 3.11. Pinned versions used to produce the submission.
+numpy==2.4.6
+pandas==3.1.1
+pytest==9.2.0
