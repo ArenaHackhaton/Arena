@@ -18,26 +18,27 @@ battre est un spellF1 de **0,2433** (baseline `smooth50`). Date limite : **17 no
 Résumé complet du défi (en français) : `ARENA.md`. En cas de doute, le code officiel de
 `evaluation/possession_metrics.py` fait foi pour les métriques.
 
-**État actuel : aucun code applicatif n'existe encore** (🎯 = cible, pas du réel). Le dépôt contient
-`ARENA.md`, `CLAUDE.md`, `README.md`, `docs/`, `.claude/` et `data/` (données du match, **jamais
-commit**). Ne rien présenter comme fait tant que ce n'est pas dans le code ou dans
-`docs/DECISIONS.md`. Fichiers connus manquants à ce jour : `BAR-ATH_tactical_atd.txt` (tracking
-principal), les deux vidéos `.mp4`, et le dépôt officiel (`games.py`, `evaluation/`, `starter/`)
-— voir `docs/KNOWN_ISSUES.md`.
+**État actuel (2026-11-17) : le pipeline existe et a produit la soumission de l'équipe
+CulersFromSN.** Code dans `arena/` (loader, features, priors, decode, pipeline, config) et
+`scripts/` (`make_submission.py`, réglage externe), tests synthétiques dans `tests/`, résultats
+du réglage dans `tuning/`. Le dépôt officiel est attendu à côté (`../more-than-a-hack-2027`, ou
+`MTAH_OFFICIAL_DIR`) et les données du match dans son `data/` (ou `MTAH_DATA_DIR`), **jamais
+commit**. Méthode et paramètres : `docs/TECHNICAL_REPORT.md` et `docs/TUNING.md` ; limites :
+`docs/KNOWN_ISSUES.md`. Ne rien présenter comme fait tant que ce n'est pas dans le code ou dans
+`docs/DECISIONS.md`.
 
-Pipeline cible 🎯 :
+Pipeline réel :
 
 ```mermaid
 flowchart LR
-    A[Loader tracking<br/>ATD + alignement] --> B[Ballon manquant<br/>interpolation]
-    B --> C[Features<br/>joueur proche, vitesse, hors-terrain]
-    C --> D[Modèle / règles<br/>H · A · D]
-    D --> E[Segmentation<br/>HMM-Viterbi, durée min]
-    F[Smart tagging<br/>a priori] --> D
+    A[Loader ATD<br/>frame = frame_id - 1] --> C[Features<br/>joueur le plus proche par équipe,<br/>vitesse du ballon, hors-terrain]
+    F[Smart tagging<br/>coups de pied arrêtés] --> P[A priori des remises]
+    C --> E[Viterbi H · A · D<br/>pénalités de changement]
+    P --> E
     E --> G[Export CSV<br/>199 319 lignes]
-    G --> H[Validateur]
+    G --> H[Validateur officiel]
     classDef step fill:#dbeafe,stroke:#1d4ed8,color:#1e3a8a;
-    class A,B,C,D,E,F,G,H step;
+    class A,C,F,P,E,G,H step;
 ```
 
 Documentation de référence (canonique, bilingue FR puis EN) :
@@ -272,7 +273,7 @@ Source : `ARENA.md` §7 **et** le mail de clarification des organisateurs (secti
 ### 5.3 Règles de code
 
 - **Déterminisme** : seed fixe, ordre stable ; relancer la commande de régénération produit le même CSV octet pour octet.
-- **Un seul point d'entrée** (`python -m possession.run`, 🎯) qui régénère le CSV de soumission.
+- **Un seul point d'entrée** (`python scripts/make_submission.py --name CulersFromSN`) qui régénère le CSV de soumission et le valide avec le validateur officiel.
 - **Alignement des frames** : la ligne *i* du CSV est la frame *i* de la vidéo tactical ; ATD
   `frame = frame_id - 1`, smart tagging `frame = round(secondes × 25)`. Vérifier la longueur : 199 319 lignes (164 000 = caméra broadcast indexée par erreur).
 - **Valeurs manquantes** : le ballon vaut `NaN` sur 41 % des frames notées. Tout code qui lit le ballon gère ce cas explicitement, sans correction silencieuse.
