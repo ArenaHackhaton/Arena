@@ -146,7 +146,7 @@ Source : ARENA.md §6. Date limite : **17 novembre 2026** ; résultats avant le 
 
 1. Régénérer le CSV depuis le dépôt propre : `python scripts/make_submission.py --name <nom_equipe>`.
    Le script valide le fichier produit avec le validateur officiel. Noter l'empreinte SHA-256 affichée.
-2. Relancer la commande une seconde fois : l'empreinte doit être identique (`TESTING.md` §6). 🎯 Non encore vérifié.
+2. Relancer la commande une seconde fois : l'empreinte doit être identique (`TESTING.md` §6). ✅ Vérifié le 2026-11-17 sur un clone neuf de `main` avec un environnement neuf (SHA-256 `42e933af…`).
 3. Le fichier s'appelle `<nom_equipe>.csv`, et il est dans `submissions/` (ignoré par Git, à envoyer hors dépôt).
 4. Rédiger le document technique `<nom_equipe>.pdf` (PDF ou MD, quelques pages) avec les rubriques d'ARENA.md §6.2 :
    approche et son choix, données utilisées et abandonnées, données d'entraînement (source, annotateur,
@@ -306,7 +306,7 @@ Source: ARENA.md §6. Deadline: **17 November 2026**; results before **26 Novemb
 
 1. Regenerate the CSV from the clean repository: `python scripts/make_submission.py --name <team_name>`.
    The script validates the produced file with the official validator. Note the SHA-256 fingerprint printed.
-2. Run the command a second time: the fingerprint must be identical (`TESTING.md` §6). 🎯 Not yet verified.
+2. Run the command a second time: the fingerprint must be identical (`TESTING.md` §6). ✅ Verified on 2026-11-17 on a fresh clone of `main` with a fresh environment (SHA-256 `42e933af…`).
 3. The file is named `<team_name>.csv` and sits in `submissions/` (ignored by Git; send it outside the repository).
 4. Write the technical document `<team_name>.pdf` (PDF or MD, a few pages) with the sections of ARENA.md §6.2:
    approach and why it was chosen, data used and abandoned, training data (source, annotator, quantity; nothing
